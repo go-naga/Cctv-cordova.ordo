@@ -1,3 +1,4 @@
+        
 name: Build Cordova Android
 
 on:
@@ -21,6 +22,11 @@ jobs:
         distribution: temurin
         java-version: 17
 
+    - name: Install required packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip openjdk-17-jdk-headless python3
+
     - name: Install Node.js 20
       uses: actions/setup-node@v4
       with:
@@ -34,12 +40,21 @@ jobs:
         wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline.zip
         unzip cmdline.zip -d cmdline-tools
         mkdir -p cmdline-tools/latest
-        mv cmdline-tools/* cmdline-tools/latest/ || true
+        mv cmdline-tools/* cmdline-tools/latest/
         yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;latest"
         export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
 
+    - name: Install Gradle
+      run: |
+        npm i -g gradle
+
+    - name: Install node deps (if any)
+      run: |
+        npm ci || true
+
     - name: Add Android platform
       run: |
+        cordova platform rm android || true
         cordova platform add android@12.0.0
 
     - name: Build APK
